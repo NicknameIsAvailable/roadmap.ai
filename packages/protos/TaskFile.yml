@@ -1,0 +1,75 @@
+version: '3'
+
+tasks:
+  proto:gen:
+    desc: Generate Go and TypeScript code from protobuf files
+    cmds:
+      - mkdir -p generate/model
+      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/user.proto
+      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/roadmap.proto
+      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/roadmap-node.proto
+      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/tag.proto
+      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/task.proto
+      # TypeScript generation using ts-proto via npx
+      - mkdir -p ./api/generated/ts
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/user.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/roadmap.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/roadmap-node.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/tag.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/task.proto
+    sources:
+      - proto/api/model/*.proto
+    generates:
+      - ./*.pb.go
+
+  proto:clean:
+    desc: Clean generated protobuf files
+    cmds:
+      - rm -rf internal/model/*.pb.go
+
+  proto:install:
+    desc: Install required protobuf tools
+    cmds:
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install github.com/srikrsna/protoc-gen-gotag@latest
+    status:
+      - which protoc-gen-go
+      - which protoc-gen-gotag
+
+  proto:watch:
+    desc: Watch proto files and regenerate on changes
+    watch: true
+    sources:
+      - proto/api/*.proto
+    cmds:
+      - task: proto:gen
+
+  proto:all:
+    desc: Install tools and generate proto files
+    cmds:
+      - task: proto:install
+      - task: proto:gen
+
+  proto:check:
+    desc: Check if protobuf tools are installed
+    cmds:
+      - |
+        echo "Checking protobuf tools..."
+        if ! command -v protoc &> /dev/null; then
+          echo "❌ protoc not found. Install it first:"
+          echo "   macOS: brew install protobuf"
+          echo "   Ubuntu: apt install protobuf-compiler"
+          exit 1
+        fi
+        
+        if ! command -v protoc-gen-go &> /dev/null; then
+          echo "❌ protoc-gen-go not found. Run: task proto:install"
+          exit 1
+        fi
+        
+        if ! command -v protoc-gen-gotag &> /dev/null; then
+          echo "❌ protoc-gen-gotag not found. Run: task proto:install"
+          exit 1
+        fi
+        
+        echo "✅ All protobuf tools are installed"

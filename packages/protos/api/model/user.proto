@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "internal/model";
+
+message User {
+    string id = 1; // @gotag: gorm:"primaryKey;autoIncrement"
+    string email = 2; // @gotag: gorm:"type:varchar(255);not null;uniqueIndex"
+    string password_hash = 3; // @gotag: gorm:"type:varchar(255);not null"
+    string name = 4; // @gotag: gorm:"type:varchar(100)"
+    int64 created_at = 5; // @gotag: gorm:"autoCreateTime"
+    int64 updated_at = 6; // @gotag: gorm:"autoUpdateTime"
+}

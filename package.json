@@ -18,5 +18,9 @@
   "packageManager": "pnpm@10.4.1",
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "ts-auto-mock": "^3.7.4",
+    "typia": "^9.7.2"
   }
 }

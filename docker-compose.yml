@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  # web:
+  #   extends:
+  #     file: ./apps/web/docker-compose.yml
+  #     service: web
+
+  api:
+    extends:
+      file: ./apps/api/docker-compose.yml
+      service: api
+  
+  db:
+    extends:
+      file: ./apps/api/docker-compose.yml
+      service: db
+      
+volumes:
+  postgres_data:

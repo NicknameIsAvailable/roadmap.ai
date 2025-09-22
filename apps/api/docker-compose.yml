@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+    api:
+      image: golang:1.23.3-alpine
+      working_dir: /app
+      volumes:
+        - ./:/app
+        - ./config:/config
+      command: sh -c "go run ./cmd/api/main.go --config /config/${ENV}.yaml"
+      environment:
+        - ENV=${ENV}
+      ports:
+        - "8080:8080"
+    db:
+      image: postgres:15
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      ports:
+        - "5432:5432"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:

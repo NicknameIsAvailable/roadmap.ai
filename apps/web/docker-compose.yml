@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: pnpm run dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    # Устанавливаем pnpm
+    entrypoint: sh -c "npm install -g pnpm && pnpm install && pnpm run dev"

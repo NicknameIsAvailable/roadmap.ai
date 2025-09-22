@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tag;
+
+option go_package = "internal/model";
+
+message Tag {
+    string id = 1;
+    string name = 2;
+    string roadmap_id = 3;
+    string task_id = 4;
+    int64 created_at = 5;
+    int64 updated_at = 6;
+}

@@ -5,42 +5,46 @@ tasks:
     desc: Generate Go and TypeScript code from protobuf files
     cmds:
       - mkdir -p generate/model
-      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/user.proto
-      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/roadmap.proto
-      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/roadmap-node.proto
-      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/tag.proto
-      - protoc --proto_path=./api/model --go_out=paths=source_relative:./api/generated/go/model api/model/task.proto
+      - protoc -I ./api/model -I ../../third_party/googleapis --go_out=paths=source_relative:./api/generated/go/model --go-grpc_out=paths=source_relative:./api/generated/go/model --grpc-gateway_out=paths=source_relative:./api/generated/go/model api/model/user.proto
+      - protoc -I ./api/model -I ../../third_party/googleapis --go_out=paths=source_relative:./api/generated/go/model --go-grpc_out=paths=source_relative:./api/generated/go/model --grpc-gateway_out=paths=source_relative:./api/generated/go/model api/model/roadmap.proto
+      - protoc -I ./api/model -I ../../third_party/googleapis --go_out=paths=source_relative:./api/generated/go/model --go-grpc_out=paths=source_relative:./api/generated/go/model --grpc-gateway_out=paths=source_relative:./api/generated/go/model api/model/roadmap-node.proto
+      - protoc -I ./api/model -I ../../third_party/googleapis --go_out=paths=source_relative:./api/generated/go/model --go-grpc_out=paths=source_relative:./api/generated/go/model --grpc-gateway_out=paths=source_relative:./api/generated/go/model api/model/tag.proto
+      - protoc -I ./api/model -I ../../third_party/googleapis --go_out=paths=source_relative:./api/generated/go/model --go-grpc_out=paths=source_relative:./api/generated/go/model --grpc-gateway_out=paths=source_relative:./api/generated/go/model api/model/task.proto
       # TypeScript generation using ts-proto via npx
       - mkdir -p ./api/generated/ts
-      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/user.proto
-      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/roadmap.proto
-      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/roadmap-node.proto
-      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/tag.proto
-      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model --proto_path=./api/model api/model/task.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model -I ./api/model -I ../../third_party/googleapis api/model/user.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model -I ./api/model -I ../../third_party/googleapis api/model/roadmap.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model -I ./api/model -I ../../third_party/googleapis api/model/roadmap-node.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model -I ./api/model -I ../../third_party/googleapis api/model/tag.proto
+      - protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./api/generated/ts/model -I ./api/model -I ../../third_party/googleapis api/model/task.proto
     sources:
-      - proto/api/model/*.proto
+      - api/model/*.proto
     generates:
-      - ./*.pb.go
+      - ./api/generated/go/model/*.pb.go
 
   proto:clean:
     desc: Clean generated protobuf files
     cmds:
-      - rm -rf internal/model/*.pb.go
+      - rm -rf ./api/generated/go/model/*.pb.go
 
   proto:install:
     desc: Install required protobuf tools
     cmds:
       - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
       - go install github.com/srikrsna/protoc-gen-gotag@latest
     status:
       - which protoc-gen-go
+      - which protoc-gen-go-grpc
+      - which protoc-gen-grpc-gateway
       - which protoc-gen-gotag
 
   proto:watch:
     desc: Watch proto files and regenerate on changes
     watch: true
     sources:
-      - proto/api/*.proto
+      - api/model/*.proto
     cmds:
       - task: proto:gen
 
@@ -64,6 +68,16 @@ tasks:
         
         if ! command -v protoc-gen-go &> /dev/null; then
           echo "❌ protoc-gen-go not found. Run: task proto:install"
+          exit 1
+        fi
+
+        if ! command -v protoc-gen-go-grpc &> /dev/null; then
+          echo "❌ protoc-gen-go-grpc not found. Run: task proto:install"
+          exit 1
+        fi
+
+        if ! command -v protoc-gen-grpc-gateway &> /dev/null; then
+          echo "❌ protoc-gen-grpc-gateway not found. Run: task proto:install"
           exit 1
         fi
         
